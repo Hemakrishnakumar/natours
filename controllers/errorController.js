@@ -14,7 +14,7 @@ const prodError = (err, res) => {
       message: err.message,
     });
   } else {
-    console.log('ERROR', err);
+    //console.log('ERROR', err);
     res.status(500).json({
       status: 'error',
       message: 'something went wrong',

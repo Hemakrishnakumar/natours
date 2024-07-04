@@ -1,44 +1,54 @@
-const fs = require('fs');
+const User = require('../models/userModel');
+const AppError = require('../utils/appError');
 
-const filePath = `${__dirname}/../dev-data/data/users.json`;
-const users = JSON.parse(fs.readFileSync(filePath));
+const catchAsync = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
-exports.getAllUsers = (req, res) => {
-  res.status(200).json({ status: 'successfull', data: users });
-};
-
-exports.updateUser = (req, res) => {
-  const id = +req.params.id;
-  const data = req.body;
-  const newUsers = tours.map((user) => (user._id === id ? data : user));
-  fs.writeFile(filePath, JSON.stringify(newUsers), (err) => {
-    res.status(201).json({ status: 'success', data: newUsers });
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find();
+  res.status(200).json({
+    status: 'success',
+    results: users.length,
+    data: users,
   });
-};
+});
 
-exports.deleteUser = (req, res) => {
-  const id = +req.params.id;
-  const newUsers = users.filter((user) => user._id != id);
-  if (users.length != newUsers.length) {
-    fs.writeFile(filePath, JSON.stringify(newUsers), (err) => {
-      res.status(200).json({ status: 'Deleted successfully' });
-    });
-  } else res.status(204).send('Invalid Id');
-};
-
-exports.createUser = (req, res) => {
-  const data = req.body;
-  const newId = users[users.length - 1]._id + '1';
-  const newUser = { _id: newId, ...data };
-  users.push(newUser);
-  fs.writeFile(filePath, JSON.stringify(users), (err) => {
-    res.status(201).json({ status: 'success', data: newUser });
+exports.updateUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
   });
-};
+  if (!user) {
+    next(new AppError(`No user found with the Id: ${req.params.id}`, 404));
+    return;
+  }
+  res.status(200).json({
+    status: 'success',
+    data: user,
+  });
+});
 
-exports.getUser = (req, res) => {
-  const id = +req.params.id;
-  const user = users.find((user) => user._id === id);
-  if (user) res.status(200).json({ status: 'successfull', data: user });
-  else res.status(404).send('User not found 😥');
-};
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.deleteOne({ _id: id });
+  if (!user) {
+    next(new AppError(`No user found with the Id: ${req.params.id}`, 404));
+    return;
+  }
+  res.status(200).json({ status: 'Deleted successfully' });
+});
+
+exports.createUser = catchAsync(async (req, res, next) => {
+  const newUser = await User.create(req.body);
+  res.status(201).json({ status: 'success', data: { tour: newUser } });
+});
+
+exports.getUser = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    next(new AppError(`No user found with the Id: ${req.params.id}`, 404));
+    return;
+  }
+  res.status(200).json({
+    status: 'success',
+    data: user,
+  });
+});
