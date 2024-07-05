@@ -1,6 +1,9 @@
 {
   "name": "natours",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=8.3.0"
+  },
   "description": "learning node and mongo",
   "main": "app.js",
   "scripts": {
@@ -18,6 +21,7 @@
     "mongodb": "^6.7.0",
     "mongoose": "^5.13.22",
     "morgan": "^1.10.0",
+    "nodemailer": "^6.9.14",
     "validator": "^13.12.0"
   },
   "devDependencies": {
