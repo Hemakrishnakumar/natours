@@ -5,12 +5,29 @@ const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const sendEmail = require('../utils/email');
 
+const cookieOptions = {
+  expires: new Date(
+    Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+  ),
+
+  httpOnly: true,
+};
+
 const catchAsync = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
 const assignToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
+
+const sendToken = (newUser, statusCode, res) => {
+  const token = assignToken(newUser._id);
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  res.cookie('jwt', token, cookieOptions);
+  res.status(statusCode).json({
+    status: 'success',
+  });
+};
 
 exports.signup = catchAsync(async (req, res, next) => {
   const {
@@ -31,15 +48,9 @@ exports.signup = catchAsync(async (req, res, next) => {
     role,
     passwordChangedAt,
   });
-  //generate a token
-  const token = assignToken(newUser._id);
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user: newUser,
-    },
-    token,
-  });
+  newUser.password = undefined;
+  //generate and send a token
+  sendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -52,11 +63,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user.email || !(await user.validatePassword(password, user.password)))
     return next(new AppError('Incorrect email or password', 401));
   //send the 200 response if everything is fine
-  const token = assignToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  sendToken(user, 200, res);
 });
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
@@ -77,7 +84,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     });
     res.status(200).json({
       status: 'success',
-      message: 'token has sent to email!',
+      message: 'token has been sent to email!',
     });
   } catch (err) {
     user.passwordResetToken = undefined;

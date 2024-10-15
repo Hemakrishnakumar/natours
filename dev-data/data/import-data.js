@@ -9,7 +9,7 @@ const Tour = require('../../models/tourModel');
 // );
 
 const connectionString =
-  'mongodb+srv://krishna:Krish@dev321@natours.kfyjtoa.mongodb.net/natours?retryWrites=true&w=majority&appName=natours';
+  'mongodb+srv://krishna:FfCxYHhqeKm7Pmog@natours.kfyjtoa.mongodb.net/natours?retryWrites=true&w=majority&appName=natours';
 //Connecting to the database
 mongoose
   .connect(connectionString, {
@@ -19,7 +19,7 @@ mongoose
   })
   .then(() => console.log('DB Connection is successful'));
 
-const tours = JSON.parse(fs.readFileSync('tours-simple.json', 'utf-8'));
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 
 //import data into database
 
