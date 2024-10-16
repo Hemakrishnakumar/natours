@@ -113,6 +113,8 @@ tourSchema.virtual('reviews', {
   localField: '_id',
 });
 
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
 //DOCUMENT MIDDLEWARE: runs before .save() and .create()
 // tourSchema.pre('save', async function () {
 //   const guidePromises = this.guides.map(async (id) => await User.findById(id));

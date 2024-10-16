@@ -5,9 +5,9 @@ const dotenv = require('dotenv');
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
-const connectionString = process.env.DATABASE_CONNECTIONSTRING.replace(
+const connectionString = process.env.DATABASE_CONNECTION_STRING.replace(
   '<PASSWORD>',
-  process.env.DATABASEPASSWORD,
+  process.env.DATABASE_PASSWORD,
 );
 
 //Connecting to the database
