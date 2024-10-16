@@ -59,9 +59,12 @@ exports.getDoc = (Model, populate = '') =>
     });
   });
 
-exports.getAllDocs = (Model, paramFilter = {}) =>
+exports.getAllDocs = (Model) =>
   catchAsync(async (req, res, next) => {
-    const features = new APIFeatures(Model.find(paramFilter), req.query)
+    //Nested params filter
+    const filter = {};
+    if (req.params.tourId) filter.tour = req.params.tourId;
+    const features = new APIFeatures(Model.find(filter), req.query)
       .filter()
       .sort()
       .limitFields()

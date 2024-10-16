@@ -15,11 +15,14 @@ const router = express.Router();
 
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 router.route('/stats').get(getTourStats);
-router.route('/').get(protect, getAllTours).post(createTour);
+router
+  .route('/')
+  .get(getAllTours)
+  .post(protect, restrictTo('admin', 'lead-guide'), createTour);
 router
   .route('/:id')
   .get(getTour)
-  .put(updateTour)
+  .put(protect, restrictTo('admin', 'lead-guid'), updateTour)
   .delete(protect, restrictTo('admin', 'lead-guid'), deleteTour);
 
 router.use('/:tourId/reviews', reviewRouter);

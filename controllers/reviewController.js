@@ -3,16 +3,7 @@ const factory = require('./factoryFunctions');
 
 const catchAsync = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
-const getAllReviews = catchAsync(async (req, res, next) => {
-  const filter = {};
-  if (req.params.tourId) filter.tour = req.params.tourId;
-  const reviews = await Review.find(filter);
-  return res.status(200).json({
-    status: 'success',
-    results: reviews.length,
-    reviews,
-  });
-});
+const getAllReviews = factory.getAllDocs(Review);
 
 const addReview = catchAsync(async (req, res, next) => {
   //Allow nested routes
