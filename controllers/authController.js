@@ -24,9 +24,8 @@ const sendToken = (newUser, statusCode, res) => {
   const token = assignToken(newUser._id);
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
   res.cookie('jwt', token, cookieOptions);
-  res.status(statusCode).json({
-    status: 'success',
-  });
+  res.locals.user = newUser;
+  res.redirect('/');
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -61,7 +60,7 @@ exports.login = catchAsync(async (req, res, next) => {
   //check if user exists in db and password is correct
   const user = await User.findOne({ email: email }).select('+password');
   if (!user.email || !(await user.validatePassword(password, user.password)))
-    return next(new AppError('Incorrect email or password', 401));
+    return res.render('login', { error: 'Incorrect email or password' });
   //send the 200 response if everything is fine
   sendToken(user, 200, res);
 });
@@ -127,13 +126,14 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 exports.protect = catchAsync(async (req, res, next) => {
   //check if token exists
+
   let token;
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
-  }
+  } else if (req.cookies) token = req.cookies.jwt;
   if (!token)
     return next(
       new AppError('you are not logged in, please login to get access', 401),
@@ -159,6 +159,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   //Grant Access
   req.user = loggedInUser;
+  res.locals.user = loggedInUser;
   next();
 });
 
@@ -174,6 +175,13 @@ exports.restrictTo =
       );
     next();
   };
+
+exports.isLoggedIn = (req, res, next) => {
+  if (req.cookies && req.cookies.jwt) {
+    res.locals.user = { name: 'krishna' };
+    next();
+  } else next();
+};
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   //Get the user

@@ -1,10 +1,15 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const tourSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: [true, 'A tour must have a name'],
+      unique: true,
+    },
+    slug: {
+      type: String,
       unique: true,
     },
     duration: {
@@ -111,6 +116,13 @@ tourSchema.virtual('reviews', {
   ref: 'Review',
   foreignField: 'tour',
   localField: '_id',
+});
+
+tourSchema.pre('save', function (next) {
+  if (this.isModified('name')) {
+    this.slug = slugify(this.name, { lower: true, strict: true });
+  }
+  next();
 });
 
 tourSchema.index({ price: 1, ratingsAverage: -1 });
